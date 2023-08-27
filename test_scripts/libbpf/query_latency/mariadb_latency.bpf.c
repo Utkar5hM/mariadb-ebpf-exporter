@@ -10,6 +10,14 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
+// static volatile char query_string[TASK_QUERY_LEN];
+struct lookup {
+	char query[TASK_QUERY_LEN];
+};
+
+
+static volatile struct lookup lookup = {};
+
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
 	__uint(max_entries, 4096);
@@ -21,7 +29,7 @@ struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
 	__uint(max_entries, 4096);
 	__type(key, pid_t);
-	__type(value, char[TASK_QUERY_LEN]);
+	__type(value, struct lookup);
 } query SEC(".maps");
 
 struct {
@@ -56,11 +64,15 @@ int BPF_KPROBE(uprobe_query, const char *str_a, const char *str_b, const char *s
 	e->tid = tid;
 	bpf_probe_read_str(&e->query, sizeof(e->query), str_c);
 	/* successfully submit it to user-space for post-processing */
-
-
-    // bpf_map_update_elem(&query, &tid, str_c, BPF_ANY);
-
 	bpf_ringbuf_submit(e, 0);
+	// bpf_probe_read_user_str(&query_string, sizeof(query_string), str_c);
+	// bpf_map_update_elem(&query, &tid, &query_string, BPF_ANY);
+	// bpf_printk("ENTRY: query = %s", query_string);
+
+
+	bpf_probe_read_user_str(&lookup.query, sizeof(lookup.query), str_c);
+	bpf_map_update_elem(&query, &tid, &lookup, BPF_ANY);
+
 	return 0;
 }
 
@@ -70,7 +82,6 @@ int BPF_KRETPROBE(uretprobe_query)
 	struct event *e;
 	pid_t tid;
 	u64 id, ts, *start_ts, duration_ns = 0;
-	char *query;
 	/* get PID and TID of exiting thread/process */
 	tid = (u32)(bpf_get_current_pid_tgid());
 
@@ -94,8 +105,19 @@ int BPF_KRETPROBE(uretprobe_query)
 	e->exit_query = true;
 	e->duration_ns = duration_ns;
 	e->tid = tid;
-	// query = bpf_map_lookup_elem(&query, &tid);
-	// bpf_probe_read_str(&e->query, sizeof(e->query), query);
+
+	// query_string = bpf_map_lookup_elem(&query, &tid);
+	// bpf_probe_read_str(&e->query, sizeof(e->query), query_string);
+	// bpf_map_delete_elem(&query, &tid);
+
+	// bpf_printk("Exit: query = %s", query_string);
+
+
+	struct lookup *lookup;
+	lookup = bpf_map_lookup_elem(&query, &tid);
+	bpf_probe_read_str(&e->query, sizeof(e->query), lookup->query);
+	bpf_map_delete_elem(&query, &tid);
+	bpf_printk("Exit: query = %s", lookup->query);
 	/* send data to user-space for post-processing */
 	bpf_ringbuf_submit(e, 0);
 	return 0;

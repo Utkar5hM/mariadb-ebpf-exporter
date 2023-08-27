@@ -84,14 +84,11 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
 
 	if (e->exit_query) {
-		printf("%-8s (%llums) %s\n", ts, 
+		printf("%-8s %6lldms %s\n", ts, 
 			e->duration_ns / 1000000, 
 		    (e->query));
-	} else {
-		printf("%-8s %s\n", ts, 
-		    (e->query));
-	}
 
+	} 
 	return 0;
 }
 
@@ -146,7 +143,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Process events */
-	printf("%-8s %15s %s\n", "TIME", "LATENCY", "QUERY");
+	printf("%-8s %-8s %s\n", "TIME", "LATENCY", "QUERY");
 	while (!exiting) {
 		err = ring_buffer__poll(rb, 100 /* timeout, ms */);
 		/* Ctrl-C will cause -EINTR */
