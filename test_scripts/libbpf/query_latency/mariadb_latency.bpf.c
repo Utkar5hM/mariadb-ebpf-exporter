@@ -12,18 +12,12 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 // static volatile char query_string[TASK_QUERY_LEN];
 struct lookup {
+	u64 ts;
 	char query[TASK_QUERY_LEN];
 };
 
 
-static volatile struct lookup lookup = {};
-
-struct {
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(max_entries, 4096);
-	__type(key, pid_t);
-	__type(value, u64);
-} query_start SEC(".maps");
+static volatile struct lookup lookup_instance = {};
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -47,11 +41,9 @@ int BPF_KPROBE(uprobe_query, const char *str_a, const char *str_b, const char *s
 
 	/* remember time query was executed for this TID */
 	tid = (u32)(bpf_get_current_pid_tgid());
-	ts = bpf_ktime_get_ns();
-	bpf_map_update_elem(&query_start, &tid, &ts, BPF_ANY);
-
-	bpf_probe_read_user_str((void *)&lookup.query, sizeof(lookup.query), str_c);
-	bpf_map_update_elem(&query, &tid, (const void *)&lookup, BPF_ANY);
+	lookup_instance.ts = bpf_ktime_get_ns();
+	bpf_probe_read_user_str((void *)&lookup_instance.query, sizeof(lookup_instance.query), str_c);
+	bpf_map_update_elem(&query, &tid, (const void *)&lookup_instance, BPF_ANY);
 
 	return 0;
 }
@@ -61,17 +53,19 @@ int BPF_KRETPROBE(uretprobe_query)
 {
 	struct event *e;
 	pid_t tid;
-	u64 *start_ts, duration_ns = 0;
+	u64 start_ts, duration_ns = 0;
 	/* get PID and TID of exiting thread/process */
 	tid = (u32)(bpf_get_current_pid_tgid());
 
-	/* if we recorded start of the process, calculate lifetime duration */
-	start_ts = bpf_map_lookup_elem(&query_start, &tid);
-	if (start_ts)
-		duration_ns = bpf_ktime_get_ns() - *start_ts;
-	else if (min_duration_ns)
+
+	struct lookup *query_exit;
+	query_exit = bpf_map_lookup_elem(&query, &tid);
+	if(!query_exit) 
 		return 0;
-	bpf_map_delete_elem(&query_start, &tid);
+
+	/* if we recorded start of the process, calculate lifetime duration */
+	start_ts = query_exit->ts;
+	duration_ns = bpf_ktime_get_ns() - start_ts;
 
 	/* if process didn't live long enough, return early */
 	if (min_duration_ns && duration_ns < min_duration_ns)
@@ -86,8 +80,6 @@ int BPF_KRETPROBE(uretprobe_query)
 	e->duration_ns = duration_ns;
 	e->tid = tid;
 
-	struct lookup *query_exit;
-	query_exit = bpf_map_lookup_elem(&query, &tid);
 	bpf_probe_read_str(&e->query, sizeof(e->query), query_exit->query);
 	bpf_map_delete_elem(&query, &tid);
 	bpf_printk("Exit: query = %s", query_exit->query);
