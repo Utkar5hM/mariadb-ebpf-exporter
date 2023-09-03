@@ -37,7 +37,6 @@ SEC("uprobe//usr/bin/mariadbd:_Z16dispatch_command19enum_server_commandP3THDPcjb
 int BPF_KPROBE(uprobe_query, const char *str_a, const char *str_b, const char *str_c)
 {
 	pid_t tid;
-	u64 ts;
 
 	/* remember time query was executed for this TID */
 	tid = (u32)(bpf_get_current_pid_tgid());
@@ -76,7 +75,6 @@ int BPF_KRETPROBE(uretprobe_query)
 	if (!e)
 		return 0;
 
-	e->exit_query = true;
 	e->duration_ns = duration_ns;
 	e->tid = tid;
 
