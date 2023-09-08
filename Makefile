@@ -18,7 +18,7 @@ CFLAGS = -g -O2 -Wall -fpie
 LDFLAGS =
 
 CGO_CFLAGS_STATIC = "-I$(abspath $(LIBBPF_OUTPUT)) -I$(abspath ./libbpfgo/selftest/common) -I$(abspath $(BUILDER_PATH))"
-CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)" ## -lzstd
+CGO_LDFLAGS_STATIC = "-lelf -lz -lzstd $(LIBBPF_OBJ)" ## -lzstd
 CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
 
 CGO_CFLAGS_DYN = "-I. -I/usr/include/"
@@ -48,7 +48,8 @@ libbpfgo-dynamic:
 
 ## test (bpf)
 
-$(OUTPUT)/main.bpf.o: $(PROBES_PATH)/main.bpf.c 
+$(OUTPUT)/main.bpf.o: $(PROBES_PATH)/main.bpf.c
+	mkdir -p output
 	$(CLANG) $(CFLAGS) -target bpf -D__TARGET_ARCH_$(BPF_ARCH) -I$(LIBBPF_OUTPUT) -I$(BUILDER_PATH) -c $< -o $@
 
 

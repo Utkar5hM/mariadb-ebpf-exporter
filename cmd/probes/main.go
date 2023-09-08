@@ -16,6 +16,13 @@ const (
 	TASK_QUERY_LEN = 52488
 )
 
+func trimString(input []byte) []byte {
+	if idx := bytes.IndexByte(input, 0x00); idx != -1 {
+		return input[:idx]
+	}
+	return input
+}
+
 func main() {
 	bpfModule, err := bpf.NewModuleFromFile("main.bpf.o")
 	if err != nil {
@@ -65,11 +72,11 @@ func main() {
 		os.Exit(-1)
 	}
 
-	rb.Start()
+	rb.Poll(100)
 	for {
 		eventBytes := <-eventsChannel
 		DurationNS := binary.LittleEndian.Uint64(eventBytes[0:8])
-		Query := string(bytes.TrimRight(eventBytes[8:8+TASK_QUERY_LEN], "\x00"))
+		Query := string(trimString(eventBytes[8 : 8+TASK_QUERY_LEN]))
 		fmt.Printf("%vms %v\n", DurationNS/1000000, Query)
 	}
 }
