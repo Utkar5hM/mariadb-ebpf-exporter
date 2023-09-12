@@ -1,4 +1,4 @@
-package main
+package probes
 
 import "C"
 
@@ -16,6 +16,11 @@ const (
 	TASK_QUERY_LEN = 52488
 )
 
+type QueryLatency struct {
+	Query   string
+	Latency uint64
+}
+
 func trimString(input []byte) []byte {
 	if idx := bytes.IndexByte(input, 0x00); idx != -1 {
 		return input[:idx]
@@ -23,8 +28,8 @@ func trimString(input []byte) []byte {
 	return input
 }
 
-func main() {
-	bpfModule, err := bpf.NewModuleFromFile("main.bpf.o")
+func GetQueryLatencies(rate int) <-chan QueryLatency {
+	bpfModule, err := bpf.NewModuleFromFile("./main.bpf.o")
 	if err != nil {
 		panic(err)
 	}
@@ -72,11 +77,17 @@ func main() {
 		os.Exit(-1)
 	}
 
-	rb.Poll(100)
-	for {
-		eventBytes := <-eventsChannel
-		DurationNS := binary.LittleEndian.Uint64(eventBytes[0:8])
-		Query := string(trimString(eventBytes[8 : 8+TASK_QUERY_LEN]))
-		fmt.Printf("%vms %v\n", DurationNS/1000000, Query)
-	}
+	rb.Poll(rate)
+
+	queryLatencyChan := make(chan QueryLatency)
+	go func() {
+		for {
+			eventBytes := <-eventsChannel
+			DurationNS := binary.LittleEndian.Uint64(eventBytes[0:8]) / 1000000
+			Query := string(trimString(eventBytes[8 : 8+TASK_QUERY_LEN]))
+			queryLatencyChan <- QueryLatency{Query: Query, Latency: DurationNS}
+		}
+	}()
+
+	return queryLatencyChan
 }
