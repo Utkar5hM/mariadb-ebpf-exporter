@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Utkar5hM/mariadb-ebpf-exporter/pkg/probes"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -22,7 +23,7 @@ func main() {
 
 	histogramVec.WithLabelValues("SELECT * FROM users").Observe(0.05)
 
-	queryLatencyChan := GetQueryLatencies(rate)
+	queryLatencyChan := probes.GetQueryLatencies(300)
 	for ql := range queryLatencyChan {
 		fmt.Printf("Query: %s, Latency: %d\n", ql.Query, ql.Latency)
 	}
