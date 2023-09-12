@@ -1,7 +1,8 @@
 BASEDIR = $(abspath ./libbpfgo)
 
 LIBBPF_OUTPUT = ./libbpfgo/output
-PROBES_PATH = ./cmd/probes
+PROBES_PATH = ./pkg/probes
+GOLANG_CODE_PATH = ./cmd/exporter
 OUTPUT = ./output
 BUILDER_PATH = ./builder
 LIBBPF_SRC = $(abspath ./libbpfgo/libbpf/src)
@@ -17,7 +18,7 @@ BPF_ARCH:= $(shell uname -m | sed 's/x86_64/x86/g; s/aarch64/arm64/g')
 CFLAGS = -g -O2 -Wall -fpie
 LDFLAGS =
 
-CGO_CFLAGS_STATIC = "-I$(abspath $(LIBBPF_OUTPUT)) -I$(abspath ./libbpfgo/selftest/common) -I$(abspath $(BUILDER_PATH))"
+CGO_CFLAGS_STATIC = "-I$(abspath $(LIBBPF_OUTPUT)) -I$(abspath $(BUILDER_PATH)) -I$(abspath ./libbpfgo/selftest/common) "
 CGO_LDFLAGS_STATIC = "-lelf -lz -lzstd $(LIBBPF_OBJ)" ## -lzstd
 CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
 
@@ -26,7 +27,7 @@ CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
 
 
 .PHONY: main
-.PHONY: $(PROBES_PATH)/main.go
+.PHONY: $(GOLANG_CODE_PATH)/main.go
 .PHONY: $(PROBES_PATH)/main.bpf.c
 .PHONY: $(BUILDER_PATH)/vmlinux.h
 
@@ -65,13 +66,13 @@ main-static: libbpfgo-static | $(OUTPUT)/main.bpf.o
 		GOOS=linux GOARCH=$(ARCH) \
 		$(GO) build \
 		-tags netgo -ldflags $(CGO_EXTLDFLAGS_STATIC) \
-		-o $(OUTPUT)/main-static $(PROBES_PATH)/main.go
+		-o $(OUTPUT)/main-static $(GOLANG_CODE_PATH)/main.go
 
 main-dynamic: libbpfgo-dynamic | $(OUTPUT)/main.bpf.o
 	CC=$(CLANG) \
 		CGO_CFLAGS=$(CGO_CFLAGS_DYN) \
 		CGO_LDFLAGS=$(CGO_LDFLAGS_DYN) \
-		$(GO) build -o $(OUTPUT)/main-dynamic $(PROBES_PATH)/main.go
+		$(GO) build -o $(OUTPUT)/main-dynamic $(GOLANG_CODE_PATH)/main.go
 
 clean:
 	rm -f *.o main-static main-dynamic
