@@ -18,8 +18,8 @@ BPF_ARCH:= $(shell uname -m | sed 's/x86_64/x86/g; s/aarch64/arm64/g')
 CFLAGS = -g -O2 -Wall -fpie
 LDFLAGS =
 
-CGO_CFLAGS_STATIC = "-I$(abspath $(LIBBPF_OUTPUT)) -I$(abspath $(BUILDER_PATH)) -I$(abspath ./libbpfgo/selftest/common) "
-CGO_LDFLAGS_STATIC = "-lelf -lz -lzstd $(LIBBPF_OBJ)" ## -lzstd
+CGO_CFLAGS_STATIC = "-I$(abspath $(LIBBPF_OUTPUT)) -I$(abspath $(BUILDER_PATH)) -I$(abspath ./libbpfgo/selftest/common)"
+CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)" ## -lzstd
 CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
 
 CGO_CFLAGS_DYN = "-I. -I/usr/include/"

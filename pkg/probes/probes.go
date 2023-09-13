@@ -83,7 +83,7 @@ func GetQueryLatencies(rate int) <-chan QueryLatency {
 		rb.Poll(rate)
 		for {
 			eventBytes := <-eventsChannel
-			DurationNS := float64(binary.LittleEndian.Uint64(eventBytes[0:8]) / 1000000)
+			DurationNS := float64(binary.LittleEndian.Uint64(eventBytes[0:8]))
 			Query := string(trimString(eventBytes[8 : 8+TASK_QUERY_LEN]))
 			queryLatencyChan <- QueryLatency{Query: Query, Latency: DurationNS}
 		}
