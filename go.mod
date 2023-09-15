@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/aquasecurity/libbpfgo v0.4.7-libbpf-1.2.0-b2e29a1
 	github.com/aquasecurity/libbpfgo/helpers v0.4.5
+	github.com/percona/go-mysql v0.0.0-20210427141028-73d29c6da78c
 	github.com/prometheus/client_golang v1.16.0
 )
 

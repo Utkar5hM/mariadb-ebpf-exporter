@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// Not in use anymore
+
 type AbstractQuery struct{}
 
 func Normalize(query string) string {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Utkar5hM/mariadb-ebpf-exporter/pkg/probes"
-	"github.com/Utkar5hM/mariadb-ebpf-exporter/pkg/queryNormalizer"
+	"github.com/percona/go-mysql/query"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -25,8 +25,9 @@ func main() {
 
 	queryLatencyChan := probes.GetQueryLatencies(300)
 	for q := range queryLatencyChan {
-		query := queryNormalizer.Normalize(q.Query)
+
+		fquery := query.Fingerprint(q.Query)
 		latency := q.Latency / 1000000
-		histogramVec.WithLabelValues(query).Observe(latency)
+		histogramVec.WithLabelValues(fquery).Observe(latency)
 	}
 }
