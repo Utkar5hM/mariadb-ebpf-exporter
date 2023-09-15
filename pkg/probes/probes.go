@@ -4,6 +4,7 @@ import "C"
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/binary"
 	"fmt"
 	"os"
@@ -11,6 +12,9 @@ import (
 	bpf "github.com/aquasecurity/libbpfgo"
 	"github.com/aquasecurity/libbpfgo/helpers"
 )
+
+//go:embed build/main.bpf.o
+var mainBpfObject []byte
 
 const (
 	TASK_QUERY_LEN = 52488
@@ -33,7 +37,7 @@ func GetQueryLatencies(rate int) <-chan QueryLatency {
 	queryLatencyChan := make(chan QueryLatency)
 	go func() {
 
-		bpfModule, err := bpf.NewModuleFromFile("./main.bpf.o")
+		bpfModule, err := bpf.NewModuleFromBuffer(mainBpfObject, "main")
 		if err != nil {
 			panic(err)
 		}

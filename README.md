@@ -4,6 +4,7 @@ This project aims to utilize eBPF technology to measure query execution latency 
 
 Build Instruction:
 
+## locally
 Build `vmlinux.h` for your kernel:
 ```
 bpftool btf dump file /sys/kernel/btf/vmlinux format c > builder/vmlinux.h
@@ -22,10 +23,17 @@ make main-static
 make main-dynamic
 ```
 
-
+## docker
 build static binary with docker
 ```
-docker build -t mariadb-ebpf-exporter .
+docker build -t mariadb-ebpf .
+```
 
-docker cp $(docker create mariadb-ebpf-exporter):/build/output ./.output-docker
+```
+docker cp $(docker create mariadb-ebpf):/main-static ./.output-docker/main-static
+```
+
+run it through container(privs need to be checked but right now it works on full):
+```
+docker run --restart always --rm -p 2112:2112 --privileged --name aasfsaf -v /usr/bin/mariadbd:/usr/bin/mariadbd mariadb-ebpf
 ```

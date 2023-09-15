@@ -1,3 +1,5 @@
 *.o
 *\vmlinux.h
 output
+builder\vmlinux.h
+pkg\probes\build\*

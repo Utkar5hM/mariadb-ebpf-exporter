@@ -49,7 +49,7 @@ libbpfgo-dynamic:
 
 ## test (bpf)
 
-$(OUTPUT)/main.bpf.o: $(PROBES_PATH)/main.bpf.c
+$(PROBES_PATH)/build/main.bpf.o: $(PROBES_PATH)/main.bpf.c
 	mkdir -p output
 	$(CLANG) $(CFLAGS) -target bpf -D__TARGET_ARCH_$(BPF_ARCH) -I$(LIBBPF_OUTPUT) -I$(BUILDER_PATH) -c $< -o $@
 
@@ -59,7 +59,7 @@ $(OUTPUT)/main.bpf.o: $(PROBES_PATH)/main.bpf.c
 .PHONY: main-static
 .PHONY: main-dynamic
 
-main-static: libbpfgo-static | $(OUTPUT)/main.bpf.o
+main-static: libbpfgo-static | $(PROBES_PATH)/build/main.bpf.o
 	CC=$(CLANG) \
 		CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
 		CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
