@@ -31,7 +31,7 @@ struct {
 
 const volatile unsigned long long min_duration_ns = 0;
 
-SEC("uprobe//usr/bin/mariadbd:_Z16dispatch_command19enum_server_commandP3THDPcjb")
+SEC("uprobe")
 int BPF_KPROBE(uprobe_query, const char *str_a, const char *str_b, const char *str_c)
 {
 	pid_t tid;
@@ -45,7 +45,7 @@ int BPF_KPROBE(uprobe_query, const char *str_a, const char *str_b, const char *s
 	return 0;
 }
 
-SEC("uretprobe//usr/bin/mariadbd:_Z16dispatch_command19enum_server_commandP3THDPcjb")
+SEC("uretprobe")
 int BPF_KRETPROBE(uretprobe_query)
 {
 	struct event *e;

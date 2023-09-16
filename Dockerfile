@@ -18,10 +18,11 @@ WORKDIR /build/bpftool/src
 
 RUN make -j$(nproc)
 
-COPY . /build/
-
+RUN mkdir -p /build/builder/
 RUN ./bpftool btf dump file /sys/kernel/btf/vmlinux format c > /build/builder/vmlinux.h
 
+
+COPY . /build/
 # compile
 WORKDIR /build
 

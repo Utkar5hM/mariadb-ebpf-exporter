@@ -59,6 +59,7 @@ $(PROBES_PATH)/build/main.bpf.o: $(PROBES_PATH)/main.bpf.c
 .PHONY: main-static
 .PHONY: main-dynamic
 
+
 main-static: libbpfgo-static | $(PROBES_PATH)/build/main.bpf.o
 	mkdir -p output
 	CC=$(CLANG) \

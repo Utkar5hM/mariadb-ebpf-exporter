@@ -1,39 +1,44 @@
 # mariadb-ebpf-exporter
 
-This project aims to utilize eBPF technology to measure query execution latency in MariaDB and probably also MySQL databases. Focusing on standardizing similar queries and transforming them into a unified format, and to export the data as Prometheus metrics for efficient performance analysis.
+This project aims to utilize eBPF technology to measure query execution latency in MariaDB and MySQL databases. Focusing on grouping similar queries by fingerprinting(kind of normalizing them) and to export the data as Prometheus metrics for efficient performance analysis.
 
-Build Instruction:
+# Usage Instruction:
 
-## locally
-Build `vmlinux.h` for your kernel:
-```
-bpftool btf dump file /sys/kernel/btf/vmlinux format c > builder/vmlinux.h
-```
+Build the project using the provided build instructions. This will create a completely static binary, eliminating the need for installing any dependencies once built. Please ensure that the kernel supports the eBPF features used.
 
+To simplify the building process, you can use the `build.sh` script. The `-f` flag is an optional argument. Use it if your mysqld is located in a different path and not symlinked. By default, mariadbd is usually symlinked to /usr/bin/mysqld, so the argument is not required in that case. This also makes sure that the correct symbol name is found and used while building for your version of mariadb/mysql.
 
-add `-lzstd` to `CGO_LDFLAGS_STATIC` in makefile if you are on arch linux and having issues with `zstd` library. remove it if you are using docker/debian.
+## Docker:
 
-build locally:
-```
-git clone --recursive https://github.com/aquasecurity/libbpfgo.git
+Build the static binary and start the container by running the following command.
 
-#for static builds
-make main-static 
-#for dynamic
-make main-dynamic
+```sh
+./build.sh docker-start -f /pathto/mysqld/or/mariadbd/
 ```
 
-## docker
-build static binary with docker
-```
-docker build -t mariadb-ebpf .
+To only build the static binary with Docker and copy it to the ./output directory, run the following command:
+
+```sh
+./build.sh docker-build -f  /pathto/mysqld/or/mariadbd/
 ```
 
-```
-docker cp $(docker create mariadb-ebpf):/main-static ./.output-docker/main-static
+## Locally:
+
+Run the build.sh script with the local-build argument. Make sure you have all the prerequisites installed. You can refer to builder/prepare-ubuntu.sh for more information or simply use the Docker version.
+
+```sh
+./build.sh local-build -f /pathto/mysqld/or/mariadbd/
 ```
 
-run it through container(privs need to be checked but right now it works on full):
+If you are using Arch Linux and encountering issues with the zstd library, add -lzstd to CGO_LDFLAGS_STATIC in the makefile. Remove it if you are using Docker/Debian.
+
+-----------------
+
+### Once the project is built (by docker or locally), you can execute the generated binary by running:
+
+```sh
+./output/main-static
 ```
-docker run --restart always --rm -p 2112:2112 --privileged --name aasfsaf -v /usr/bin/mariadbd:/usr/bin/mariadbd mariadb-ebpf
-```
+
+
+
