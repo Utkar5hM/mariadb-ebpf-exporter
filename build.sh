@@ -3,8 +3,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROBES_PATH="${SCRIPT_DIR}/pkg/probes"
 MYSQLD_PATH="/usr/bin/mysqld"
-IMAGE_NAME="sql-ebpf-exporter"  
-CONTAINER_NAME="sql-ebpf-exporter"  
+IMAGE_NAME="mariadb-ebpf-exporter"  
+CONTAINER_NAME="mariadb-ebpf-exporter"  
 
 while (( "$#" )); do
   case "$1" in
@@ -42,18 +42,18 @@ echo -n "symbol name found: " && echo $(cat ${PROBES_PATH}/symbol.txt)
 
 
 if [ "$COMMAND" = "docker-build" ]; then
-    DOCKER_BUILDKIT=1 docker build -t $IMAGE_NAME "${SCRIPT_DIR}/."
+    docker build -t $IMAGE_NAME "${SCRIPT_DIR}/."
     docker cp "$(docker create mariadb-ebpf):/main-static" "${SCRIPT_DIR}/output/main-static"
 fi
 
 if [ "$COMMAND" = "docker-start" ]; then
-    DOCKER_BUILDKIT=1 docker build -t $IMAGE_NAME "${SCRIPT_DIR}"
+    docker build -t $IMAGE_NAME "${SCRIPT_DIR}/."
     if [ "$(docker ps -q -a -f name=$CONTAINER_NAME)" ]; then
         echo "Container $CONTAINER_NAME exists. Stopping and removing..."
         docker stop $CONTAINER_NAME
         docker rm $CONTAINER_NAME
     fi
-    docker run --restart always -p 2112:2112 -d --cap-add=CAP_BPF --cap-add=CAP_PERFMON --cap-add=CAP_SYS_RESOURCE --name $CONTAINER_NAME -v $MYSQLD_PATH:/usr/bin/mysqld mariadb-ebpf
+    docker run --restart always -p 2112:2112 -d --cap-add=CAP_BPF --cap-add=CAP_PERFMON --cap-add=CAP_SYS_RESOURCE --name $CONTAINER_NAME -v $MYSQLD_PATH:/usr/bin/mysqld $IMAGE_NAME
     echo "Showing docker logs in 2 seconds..." 
     sleep 2
     docker logs $CONTAINER_NAME  
