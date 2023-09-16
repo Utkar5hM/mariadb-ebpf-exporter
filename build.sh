@@ -37,6 +37,9 @@ while (( "$#" )); do
   esac
 done
 
+nm -D $MYSQLD_PATH | grep dispatch_command | awk -F " " '{ print $3 }' | tr -d '\n' > "${PROBES_PATH}/symbol.txt"
+echo -n "symbol name found: " && echo $(cat ${PROBES_PATH}/symbol.txt)
+
 
 if [ "$COMMAND" = "docker-build" ]; then
     DOCKER_BUILDKIT=1 docker build -t $IMAGE_NAME "${SCRIPT_DIR}/."
@@ -50,7 +53,10 @@ if [ "$COMMAND" = "docker-start" ]; then
         docker stop $CONTAINER_NAME
         docker rm $CONTAINER_NAME
     fi
-    docker run --restart always -p 2112:2112 -d --privileged --name $CONTAINER_NAME -v $MYSQLD_PATH:/usr/bin/mysqld mariadb-ebpf
+    docker run --restart always -p 2112:2112 -d --cap-add=CAP_BPF --cap-add=CAP_PERFMON --cap-add=CAP_SYS_RESOURCE --name $CONTAINER_NAME -v $MYSQLD_PATH:/usr/bin/mysqld mariadb-ebpf
+    echo "Showing docker logs in 2 seconds..." 
+    sleep 2
+    docker logs $CONTAINER_NAME  
 fi
 
 if [ "$COMMAND" = "local-build" ]; then
