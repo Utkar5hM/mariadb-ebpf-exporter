@@ -56,7 +56,8 @@ if [ "$COMMAND" = "docker-start" ]; then
     docker run --restart always -p 2112:2112 -d --cap-add=CAP_BPF --cap-add=CAP_PERFMON --cap-add=CAP_SYS_RESOURCE --name $CONTAINER_NAME -v $MYSQLD_PATH:/usr/bin/mysqld $IMAGE_NAME
     echo "Showing docker logs in 2 seconds..." 
     sleep 2
-    docker logs $CONTAINER_NAME  
+    docker logs $CONTAINER_NAME 
+    echo -e "metrics can be viewed at \e[32mhttp://127.0.0.1:2112/metrics\e[0m"
 fi
 
 if [ "$COMMAND" = "local-build" ]; then

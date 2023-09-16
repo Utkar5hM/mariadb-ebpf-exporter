@@ -1,5 +1,5 @@
 builder/vmlinux.h
-docker.sh
+build.sh
 Dockerfile
 output
 libbpfgo
