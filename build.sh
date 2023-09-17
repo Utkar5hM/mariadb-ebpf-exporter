@@ -154,7 +154,7 @@ if [ "$COMMAND" = "docker-build" ]; then
 elif [ "$COMMAND" = "docker-run" ]; then
     docker_build
     docker_stop_existing_container
-    docker run --restart always -p 2112:2112 -d --cap-add=CAP_BPF --cap-add=CAP_PERFMON --cap-add=CAP_SYS_RESOURCE \
+    docker run --restart always -p $EXPOSE_PORT:2112 -d --cap-add=CAP_BPF --cap-add=CAP_PERFMON --cap-add=CAP_SYS_RESOURCE \
         --name $CONTAINER_NAME -v $MYSQLD_PATH:$ATTACH_MYSQLD_PATH $IMAGE_NAME
     docker_logs
     visit_url
@@ -170,7 +170,7 @@ elif [ "$COMMAND" = "docker-attach-run" ]; then
     symbol_name_extraction
     docker_build
     docker_stop_existing_container
-    docker run --restart always -p 2112:2112 -d --privileged \
+    docker run --restart always -p $EXPOSE_PORT:2112 -d --privileged \
         --pid=container:$DB_CONTAINER_NAME  \
         --name $CONTAINER_NAME $IMAGE_NAME
     docker_logs
