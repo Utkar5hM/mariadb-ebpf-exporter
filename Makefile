@@ -19,7 +19,12 @@ CFLAGS = -g -O2 -Wall -fpie
 LDFLAGS =
 
 CGO_CFLAGS_STATIC = "-I$(abspath $(LIBBPF_OUTPUT)) -I$(abspath $(BUILDER_PATH)) -I$(abspath ./libbpfgo/selftest/common)"
-CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)" ## -lzstd
+CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)  -lzstd" ## -lzstd
+
+ifeq ($(shell ld -lzstd 2>&1 | grep -q "cannot find -lzstd"; echo $$?),0)
+	CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)"
+endif
+
 CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
 
 CGO_CFLAGS_DYN = "-I. -I/usr/include/"

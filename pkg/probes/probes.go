@@ -19,6 +19,9 @@ var mainBpfObject []byte
 //go:embed symbol.txt
 var symbolName string
 
+//go:embed binaryPath.txt
+var binaryPath string
+
 const (
 	TASK_QUERY_LEN = 52488
 )
@@ -53,7 +56,6 @@ func GetQueryLatencies(rate int) <-chan QueryLatency {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(-1)
 		}
-		binaryPath := "/usr/bin/mysqld"
 		offset, err := helpers.SymbolToOffset(binaryPath, symbolName)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
