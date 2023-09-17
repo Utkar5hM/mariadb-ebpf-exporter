@@ -9,7 +9,6 @@ Build the project using the provided build instructions. This will create a comp
 To simplify the building process, you can use the `build.sh` script.
 
 ## build script guide 
------------------
 
 #### The first argument is the build type. The following build types are supported:
 
@@ -23,7 +22,7 @@ To simplify the building process, you can use the `build.sh` script.
 
 - `docker-attach-run` will build the project using docker by default for the running mariadb docker container with name `some-mariadb` and run the generated binary.
 
-Additional arguments can be passed to the build script. The following arguments are supported:
+#### Additional optional arguments can be passed to the build script. The following arguments are supported:
 
 - The `-f` flag is an optional argument. Use it if your mysqld is located in a different path and not symlinked. By default, mariadbd is usually symlinked to /usr/bin/mysqld, so the argument is not required in that case better to have a check. This also makes sure that the correct symbol name is found and used while building for your version of mariadb/mysql.
 
