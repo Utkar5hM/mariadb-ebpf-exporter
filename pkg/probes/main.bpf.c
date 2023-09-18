@@ -41,7 +41,6 @@ int BPF_KPROBE(uprobe_query, const char *str_a, const char *str_b, const char *s
 	lookup_instance.ts = bpf_ktime_get_ns();
 	bpf_probe_read_user_str((void *)&lookup_instance.query, sizeof(lookup_instance.query), str_c);
 	bpf_map_update_elem(&query, &tid, (const void *)&lookup_instance, BPF_ANY);
-
 	return 0;
 }
 
@@ -67,7 +66,6 @@ int BPF_KRETPROBE(uretprobe_query)
 	/* if process didn't live long enough, return early */
 	if (min_duration_ns && duration_ns < min_duration_ns)
 		return 0;
-
 	/* reserve sample from BPF ringbuf */
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
@@ -77,7 +75,6 @@ int BPF_KRETPROBE(uretprobe_query)
 
 	bpf_probe_read_str(&e->query, sizeof(e->query), query_exit->query);
 	bpf_map_delete_elem(&query, &tid);
-	bpf_printk("Exit: query = %s", query_exit->query);
 	/* send data to user-space for post-processing */
 	bpf_ringbuf_submit(e, 0);
 	return 0;

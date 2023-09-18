@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"strconv"
 
 	bpf "github.com/aquasecurity/libbpfgo"
 	"github.com/aquasecurity/libbpfgo/helpers"
@@ -21,6 +22,9 @@ var symbolName string
 
 //go:embed binaryPath.txt
 var binaryPath string
+
+//go:embed minimumDuration.txt
+var minimumDurationString string
 
 const (
 	TASK_QUERY_LEN = 52488
@@ -38,7 +42,7 @@ func trimString(input []byte) []byte {
 	return input
 }
 
-func GetQueryLatencies(rate int) <-chan QueryLatency {
+func GetQueryLatencies(rate int, argMinimumDurationMs uint64) <-chan QueryLatency {
 
 	queryLatencyChan := make(chan QueryLatency)
 	go func() {
@@ -48,6 +52,19 @@ func GetQueryLatencies(rate int) <-chan QueryLatency {
 			panic(err)
 		}
 		defer bpfModule.Close()
+		/* Parameterize BPF code with minimum duration parameter */
+
+		minimumDurationMs, err := strconv.ParseUint(minimumDurationString, 10, 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, "Error parsing minimum duration, using default value of 0ms")
+			minimumDurationMs = 0
+		}
+		if argMinimumDurationMs > 0 {
+			minimumDurationMs = argMinimumDurationMs
+		}
+		fmt.Println("Minimum Duration: ", minimumDurationMs)
+		bpfModule.InitGlobalVariable("min_duration_ns", uint64(minimumDurationMs*(1000000)))
 
 		bpfModule.BPFLoadObject()
 

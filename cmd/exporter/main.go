@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 
 	"github.com/Utkar5hM/mariadb-ebpf-exporter/pkg/probes"
@@ -10,7 +11,9 @@ import (
 )
 
 func main() {
-
+	var argMinimumDurationMs uint64 = 0
+	flag.Uint64Var(&argMinimumDurationMs, "t", 0, "Minimum latency duration for queries to be captured")
+	flag.Parse()
 	histogramVec := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "ebpf_exporter",
 		Name:      "query_latencies",
@@ -22,8 +25,7 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 
 	go http.ListenAndServe(":2112", nil)
-
-	queryLatencyChan := probes.GetQueryLatencies(300)
+	queryLatencyChan := probes.GetQueryLatencies(300, argMinimumDurationMs)
 	for q := range queryLatencyChan {
 
 		fquery := query.Fingerprint(q.Query)

@@ -13,6 +13,7 @@ ATTACH_MYSQLD_PATH="/usr/bin/mysqld"
 ATTACH_MYSQLD_PATH_SPECIFIED=false
 DB_IMAGE_NAME="mariadb:latest"
 EXPOSE_PORT=2112
+MINIMUM_DURATION_SECONDS=0
 # green text
 echo -e "\e[32mMariadb eBPF Exporter \e[0m"
 echo -e "Github Link: \e[34mhttps://github.com/Utkar5hM/mariadb-ebpf-exporter/\e[0m"
@@ -88,6 +89,15 @@ while (( "$#" )); do
           exit 1
         fi
       fi
+      if [ "$1" = "-t" ]; then
+        if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+          MINIMUM_DURATION_SECONDS=$2
+          shift 2
+        else
+          echo "Error: Argument for '-t' is missing" >&2
+          exit 1
+        fi
+      fi
       if [ "$1" = "-d" ]; then
         if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
             DB_TYPE=$2
@@ -141,6 +151,11 @@ if [ "$COMMAND" = "docker-attach-build" ] || [ "$COMMAND" = "docker-attach-run" 
     mkdir -p $SCRIPT_DIR/output/build
 else
     symbol_name_extraction
+fi
+
+if [ $MINIMUM_DURATION_SECONDS -ne 0 ]; then
+    echo -n $MINIMUM_DURATION_SECONDS > $PROBES_PATH/minimumDuration.txt
+    echo "Default minimum execution latency for a query to be captured is now set to $MINIMUM_DURATION_SECONDS seconds"
 fi
 
 echo "MySQLD Path where uprobes will be attached: $ATTACH_MYSQLD_PATH"
