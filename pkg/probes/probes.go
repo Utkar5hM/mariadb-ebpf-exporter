@@ -46,7 +46,6 @@ func GetQueryLatencies(rate int, argMinimumDurationMs uint64) <-chan QueryLatenc
 
 	queryLatencyChan := make(chan QueryLatency)
 	go func() {
-
 		bpfModule, err := bpf.NewModuleFromBuffer(mainBpfObject, "main")
 		if err != nil {
 			panic(err)

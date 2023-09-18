@@ -17,8 +17,8 @@ MINIMUM_DURATION_SECONDS=0
 # green text
 echo -e "\e[32mMariadb eBPF Exporter \e[0m"
 echo -e "Github Link: \e[34mhttps://github.com/Utkar5hM/mariadb-ebpf-exporter/\e[0m"
+echo "Usage: ./build.sh <command> [options]"
 echo "=================================="
-
 while (( "$#" )); do
   case "$1" in
     docker-build|docker-run|local-build|docker-attach-build|docker-attach-run)
@@ -114,6 +114,15 @@ while (( "$#" )); do
   esac
 done
 
+rm -f pkg/probes/build/main.bpf.c 2>/dev/null
+if [ "$DB_TYPE" = "mysql" ]; then
+  ln -s ../bpf_c/mysql.bpf.c pkg/probes/build/main.bpf.c
+  echo "Created symlink from mysql.bpf.c to main.bpf.c"
+else
+  ln -s ../bpf_c/mariadb.bpf.c pkg/probes/build/main.bpf.c
+  echo "Created symlink from mariadb.bpf.c to main.bpf.c"
+fi
+
 symbol_name_extraction() {
     nm -D $MYSQLD_PATH | grep dispatch_command | awk -F " " '{ print $3 }' | tr -d '\n' > "${PROBES_PATH}/symbol.txt"
     echo "MYSQLD FILE TO ATTACH: $MYSQLD_PATH" 
@@ -198,3 +207,6 @@ elif [ "$COMMAND" = "local-build" ]; then
     make main-static
     echo "main-static built at ${SCRIPT_DIR}/output/main-static"
 fi
+
+echo "=================================="
+echo -e "\e[35mBuild script signing Off ^_^\e[0m"

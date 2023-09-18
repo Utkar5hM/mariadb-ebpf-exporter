@@ -33,7 +33,7 @@ CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
 
 .PHONY: main
 .PHONY: $(GOLANG_CODE_PATH)/main.go
-.PHONY: $(PROBES_PATH)/main.bpf.c
+.PHONY: $(PROBES_PATH)/build/main.bpf.c
 .PHONY: $(BUILDER_PATH)/vmlinux.h
 
 all: main-static
@@ -54,7 +54,7 @@ libbpfgo-dynamic:
 
 ## test (bpf)
 
-$(PROBES_PATH)/build/main.bpf.o: $(PROBES_PATH)/main.bpf.c
+$(PROBES_PATH)/build/main.bpf.o: $(PROBES_PATH)/build/main.bpf.c
 	mkdir -p $(PROBES_PATH)/build/
 	$(CLANG) $(CFLAGS) -target bpf -D__TARGET_ARCH_$(BPF_ARCH) -I$(LIBBPF_OUTPUT) -I$(BUILDER_PATH) -c $< -o $@
 

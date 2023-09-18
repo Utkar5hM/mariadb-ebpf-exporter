@@ -27,7 +27,7 @@ To simplify the building process, you can use the `build.sh` script.
 - The `-f` flag is an optional argument. Use it if your mysqld is located in a different path and not symlinked. By default, mariadbd is usually symlinked to /usr/bin/mysqld, so the argument is not required in that case better to have a check. This also makes sure that the correct symbol name is found and used while building for your version of mariadb/mysql.
 
 
-- The `-d` flag is an optional argument. Use it if you want to build for a different version of mariadb/mysql. The support for mysql is in development and will be added soon.
+- The `-d` flag specifies the database server mariadb or mysql. Use it if you want to build for a different version of mysql. By default, it is set to mariadb. 
 
 - The `-a` flag is an optional argument. It is for specifying mysqld/mariadbd path where the ebpf probes will be attached. By default, it is set to /usr/bin/mysqld. It is not required to be set for docker-attach-run and docker-attach-build as it will be automatically set to the running container's process pid exe path `/proc/1/exe`. ( Note: This docker-attach-run will start a container by having pid namespace of the the db container and will attach the probes to the process with pid 1 in that namespace. So, make sure that the db container is running before running this command. )
 
@@ -40,6 +40,9 @@ To simplify the building process, you can use the `build.sh` script.
 - The `-dc` flag is for specifying the name of the database container to be used by docker-attach-run. By default, it is set to `some-mariadb`.
 
 - The `-p` flag is for specifying the port to be used by docker-run and docker-attach-run. By default, it is set to `2112`.
+
+- The `-t` flag is for specifying the minimum latency in milliseconds for a query to be considered slow to be captured by the exporter. By default, it is set to 0 capturing all queries.
+
 
 -------------------
 

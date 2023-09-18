@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
 /* Copyright (c) 2020 Facebook */
-#include "../../builder/vmlinux.h"
+#include "../../../builder/vmlinux.h"
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include "main.bpf.h"
+
+#define TASK_QUERY_LEN	 52488
+#define MAX_FILENAME_LEN 127
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
+
+struct event {
+	unsigned long long duration_ns;
+	char query[TASK_QUERY_LEN];
+};
 
 // static volatile char query_string[TASK_QUERY_LEN];
 struct lookup {

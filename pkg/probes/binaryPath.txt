@@ -1,1 +1,1 @@
-/usr/bin/mysqld
+/proc/1/exe
