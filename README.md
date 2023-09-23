@@ -12,22 +12,22 @@ To simplify the building process, you can use the `build.sh` script.
 
 #### The first argument is the build type. The following build types are supported:
 
-- `docker-run`: will build the project using docker and run the generated binary.
+- `docker-run`: will build the project using docker and start a container which runs the exporter.
+
+- `docker-attach-run` will build the project using docker for a currently running mariadb docker container by default with name `some-mariadb` and starts the exporter container that attaches to the process namespace of the database container, collecting and exporting query latency statistics.
 
 - `local-build`: will build the project locally and generate the binary.
 
 - `docker-build` will build the project using docker and copy the generated binary to the ./output directory.
 
-- `docker-attach-build` will build a docker image by default for the latest mariadb docker image and copy the generated binary to the ./output directory. db image can be specified using the `-di` flag.
+- `docker-attach-build` will build a docker image by default for the latest mariadb docker image and copy the generated binary to the ./output directory. db image can be specified using the `-di` flag. The docker run command specified for docker-attach-run in `build.sh` can be used to start a container according to your needs.
 
-- `docker-attach-run` will build the project using docker by default for the running mariadb docker container with name `some-mariadb` and run the generated binary.
 
 #### Additional optional arguments can be passed to the build script. The following arguments are supported:
 
+- The `-d` flag specifies the database server mariadb or mysql. Use it if you want to build for a different version of mysql. By default, it is set to mariadb. Make sure It is specified if you're using `mysql` as both of them have a different function for executing queries leading to different ebpf kernel space programs. 
+
 - The `-f` flag is an optional argument. Use it if your mysqld is located in a different path and not symlinked. By default, mariadbd is usually symlinked to /usr/bin/mysqld, so the argument is not required in that case better to have a check. This also makes sure that the correct symbol name is found and used while building for your version of mariadb/mysql.
-
-
-- The `-d` flag specifies the database server mariadb or mysql. Use it if you want to build for a different version of mysql. By default, it is set to mariadb. 
 
 - The `-a` flag is an optional argument. It is for specifying mysqld/mariadbd path where the ebpf probes will be attached. By default, it is set to /usr/bin/mysqld. It is not required to be set for docker-attach-run and docker-attach-build as it will be automatically set to the running container's process pid exe path `/proc/1/exe`. ( Note: This docker-attach-run will start a container by having pid namespace of the the db container and will attach the probes to the process with pid 1 in that namespace. So, make sure that the db container is running before running this command. )
 
